@@ -19,9 +19,9 @@ SSD1306AsciiWire oled;
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
 
-char auth[] = "d057580798ec4c96acb1b8b747c159d8";
-char ssid[] = "FFULLHE";
-char pass[] = "mg833857";
+char auth[] = "d057580798ec4c96acb1b8b747c159xxxd8";
+char ssid[] = "FFUXXXX";
+char pass[] = "XXXXXXXX";
 
 SimpleTimer timer;
 
