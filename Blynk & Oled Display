@@ -1,0 +1,82 @@
+#include <SimpleTimer.h>
+//#define BLYNK_PRINT Serial    // Comment this out to disable prints and save space
+#include <ESP8266WiFi.h>
+#include <BlynkSimpleEsp8266.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
+#include "SSD1306Ascii.h"
+#include "SSD1306AsciiWire.h"
+
+// 0X3C+SA0 - 0x3C or 0x3D
+#define I2C_ADDRESS 0x3C
+
+// Define proper RST_PIN if required.
+#define RST_PIN -1
+
+SSD1306AsciiWire oled;
+#define ONE_WIRE_BUS 4   // This is the ESP8266 pin (WeMos D2 Mini in my case)
+
+OneWire oneWire(ONE_WIRE_BUS);
+DallasTemperature sensors(&oneWire);
+
+char auth[] = "d057580798ec4c96acb1b8b747c159d8";
+char ssid[] = "FFULLHE";
+char pass[] = "mg833857";
+
+SimpleTimer timer;
+
+int roomTemperature;            // Room temperature in F
+
+void setup()
+{
+  // Start serial communication for debugging purposes
+  Serial.begin(9600);
+  Wire.begin();
+  Wire.setClock(400000L);
+  // Start up the library
+  #if RST_PIN >= 0
+  oled.begin(&Adafruit128x64, I2C_ADDRESS, RST_PIN);
+#else // RST_PIN >= 0
+  oled.begin(&Adafruit128x64, I2C_ADDRESS);
+#endif // RST_PIN >= 0
+
+  oled.setFont(Adafruit5x7);
+
+  uint32_t m = micros();
+  Blynk.begin(auth, ssid, pass);
+
+  while (Blynk.connect() == false) {
+    // Wait until connected
+    
+  }
+
+  sensors.begin();
+  sensors.setResolution(10);
+
+  timer.setInterval(2000L, sendTemps);    // Temperature sensor "polling" interval.
+}
+
+void loop()
+{
+  Blynk.run();
+  timer.run();
+}
+
+void sendTemps()
+{
+  sensors.requestTemperatures();                  // Polls the sensors.
+  roomTemperature = sensors.getTempCByIndex(0);   // Stores temperature. Change to getTempCByIndex(0) for celcius.
+  Blynk.virtualWrite(1, roomTemperature);         // Send temperature to Blynk app virtual pin 1.
+  oled.clear();
+  oled.print("Celsius  ");
+  oled.println(sensors.getTempCByIndex(0));
+  oled.println("====================");
+   oled.println("Fahrenheit: ====== ");
+ oled.println(sensors.getTempFByIndex(0));
+  oled.println("====================");
+  oled.println("Blynk .. Wemos D1 == ");
+  oled.println("Dallas 1820 B Temp = ");
+  oled.println("FFH Agosto 2020      ");
+  oled.println("Concepcion Chile     ");
+  
+}
